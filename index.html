@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>CS19 Validation Dashboard</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Instrument+Serif:ital@0;1&family=Geist:wght@300;400;500;600;700&family=Geist+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0"></script>
+
+<style>
+  :root {
+    --bg: #FAFAF7;
+    --surface: #FFFFFF;
+    --surface-2: #F5F4EF;
+    --border: #E8E6DF;
+    --border-strong: #D4D1C7;
+    --ink: #1A1A19;
+    --ink-2: #4A4A47;
+    --ink-3: #8A8A85;
+    --accent: #2D4A3E;
+    --accent-soft: #E6EDE8;
+    --success: #2D5A3D;
+    --success-bg: #E4EFE5;
+    --warning: #C2410C;
+    --warning-bg: #FED7AA;
+    --danger: #B91C1C;
+    --danger-bg: #FEE2E2;
+    --info: #1F4761;
+    --info-bg: #DBE5EE;
+    --shadow-sm: 0 1px 2px rgba(20, 20, 18, 0.04);
+    --shadow-md: 0 1px 3px rgba(20, 20, 18, 0.04), 0 4px 12px rgba(20, 20, 18, 0.04);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html, body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: 'Geist', -apple-system, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 1600px;
+    margin: 0 auto;
+    padding: 32px 28px 64px;
+  }
+
+  /* HEADER */
+  .header {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: 24px;
+    padding-bottom: 24px;
+    margin-bottom: 28px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .header-left h1 {
+    font-family: 'Instrument Serif', serif;
+    font-size: 42px;
+    font-weight: 400;
+    line-height: 1.05;
+    letter-spacing: -0.01em;
+    color: var(--ink);
+  }
+
+  .header-left h1 em {
+    font-style: italic;
+    color: var(--accent);
+  }
+
+  .header-left p {
+    margin-top: 6px;
+    color: var(--ink-3);
+    font-size: 13px;
+    letter-spacing: 0.01em;
+  }
+
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  .updated {
+    text-align: right;
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+  }
+
+  .updated strong {
+    display: block;
+    margin-top: 2px;
+    font-family: 'Geist Mono', monospace;
+    font-weight: 500;
+    font-size: 12px;
+    letter-spacing: 0;
+    text-transform: none;
+    color: var(--ink-2);
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 8px 14px;
+    background: var(--surface);
+    color: var(--ink);
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.12s ease;
+  }
+
+  .btn:hover { background: var(--surface-2); border-color: var(--ink-3); }
+  .btn:active { transform: translateY(1px); }
+
+  .btn-primary {
+    background: var(--ink);
+    color: var(--bg);
+    border-color: var(--ink);
+  }
+
+  .btn-primary:hover {
+    background: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .btn svg { width: 14px; height: 14px; }
+
+  /* METRIC CARDS */
+  .metrics {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    overflow: hidden;
+    margin-bottom: 28px;
+  }
+
+  .metric {
+    background: var(--surface);
+    padding: 24px 22px;
+    min-height: 130px;
+    position: relative;
+  }
+
+  .metric-label {
+    font-size: 11px;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+    margin-bottom: 12px;
+  }
+
+  .metric-value {
+    font-family: 'Geist Mono', monospace;
+    font-size: 30px;
+    font-weight: 500;
+    letter-spacing: -0.02em;
+    color: var(--ink);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+
+  .metric-value.loading {
+    color: var(--ink-3);
+    opacity: 0.3;
+  }
+
+  .metric-sub {
+    margin-top: 8px;
+    font-size: 11px;
+    color: var(--ink-3);
+    font-variant-numeric: tabular-nums;
+  }
+
+  .metric-accent .metric-value { color: var(--accent); }
+
+  .metric {
+    transition: all 0.2s ease;
+    overflow: hidden;
+  }
+
+  .metric:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.08);
+  }
+
+  .metric-icon {
+    font-size: 22px;
+    margin-bottom: 14px;
+  }
+
+  .metric-total { background: linear-gradient(135deg, #1F2937, #374151); color: white; }
+  .metric-payment { background: linear-gradient(135deg, #14532D, #166534); color: white; }
+  .metric-no-payment { background: linear-gradient(135deg, #C2410C, #EA580C); color: white; }
+  .metric-pending { background: linear-gradient(135deg, #991B1B, #DC2626); color: white; }
+  .metric-turnout { background: linear-gradient(135deg, #1E3A8A, #2563EB); color: white; }
+
+  .metric-total .metric-label, .metric-payment .metric-label, .metric-no-payment .metric-label,
+  .metric-pending .metric-label, .metric-turnout .metric-label, .metric-total .metric-sub,
+  .metric-payment .metric-sub, .metric-no-payment .metric-sub, .metric-pending .metric-sub,
+  .metric-turnout .metric-sub { color: rgba(255,255,255,0.75); }
+
+  .metric-total .metric-value, .metric-payment .metric-value, .metric-no-payment .metric-value,
+  .metric-pending .metric-value, .metric-turnout .metric-value { color: white; }
+
+  .validation-breakdown {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+
+  .breakdown-card {
+    border-radius: 12px;
+    padding: 24px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+  }
+
+  .breakdown-card::after {
+    content: '';
+    position: absolute;
+    width: 120px;
+    height: 120px;
+    background: rgba(255,255,255,0.08);
+    border-radius: 50%;
+    right: -40px;
+    top: -40px;
+  }
+
+  .success-card { background: linear-gradient(135deg, #14532D, #16A34A); border-color: var(--success-bg); }
+  .danger-card { background: linear-gradient(135deg, #C2410C, #EA580C); border-color: var(--danger-bg); }
+
+  .breakdown-title {
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.75);
+    margin-bottom: 12px;
+  }
+
+  .breakdown-main {
+    font-family: 'Geist Mono', monospace;
+    font-size: 34px;
+    font-weight: 600;
+    color: white;
+    margin-bottom: 8px;
+  }
+
+  .breakdown-sub { font-size: 12px; color: rgba(255,255,255,0.85); margin-bottom: 14px; }
+  .breakdown-footer { font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.8); }
+
+  /* CHARTS */
+  .charts {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 28px;
+  }
+
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 22px;
+  }
+
+  .panel-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 18px;
+  }
+
+  .panel-title {
+    font-family: 'Instrument Serif', serif;
+    font-size: 22px;
+    font-weight: 400;
+    color: var(--ink);
+    letter-spacing: -0.005em;
+  }
+
+  .panel-meta {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--ink-3);
+    font-family: 'Geist Mono', monospace;
+  }
+
+  .chart-canvas-wrap { position: relative; height: 360px; }
+
+  /* FILTERS BAR */
+  .filters {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-bottom: 16px;
+  }
+
+  .main-filter-group {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 20px;
+  }
+
+  .main-filter-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
+    gap: 12px;
+  }
+
+  .main-filter-item label {
+    display: block;
+    font-size: 11px;
+    font-weight: 500;
+    color: var(--ink-2);
+    margin-bottom: 5px;
+    letter-spacing: 0.01em;
+  }
+  
+  .main-filter-actions {
+    display: flex;
+    align-items: flex-start;
+    padding-top: 21px; /* Aligns button with inputs below the labels */
+  }
+
+  .sub-filter-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+
+  .table-controls {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: center;
+    margin-bottom: 14px;
+  }
+
+  .pagination-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin: 18px 0 24px;
+    flex-wrap: wrap;
+  }
+
+  .pagination-info { font-size: 13px; color: var(--ink-2); font-family: 'Geist Mono', monospace; }
+  .rows-select { width: 120px; min-width: 120px; }
+  .result-group { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; }
+
+  .filter-input, .filter-select {
+    width: 100%;
+    padding: 10px 12px;
+    background: var(--surface);
+    border: 1px solid var(--border-strong);
+    border-radius: 6px;
+    font-family: inherit;
+    font-size: 13px;
+    color: var(--ink);
+    transition: border-color 0.12s ease;
+  }
+
+  .filter-input:focus, .filter-select:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  .filter-input {
+    padding-left: 36px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238A8A85' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cpath d='m21 21-4.3-4.3'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: 12px center;
+  }
+
+  .filter-select {
+    appearance: none;
+    padding-right: 32px;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%238A8A85' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    cursor: pointer;
+  }
+
+  /* MULTI-SELECT */
+  .multi-select { position: relative; }
+  .multi-search { margin-bottom: 8px; }
+  
+  .multi-dropdown {
+    display: none; 
+    position: absolute; 
+    top: 44px; 
+    left: 0;
+    right: 0;
+    z-index: 100;
+    max-height: 220px;
+    overflow-y: auto;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    background: var(--surface);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  
+  .multi-dropdown.show {
+    display: block; 
+  }
+
+  .multi-option {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 10px 12px;
+    cursor: pointer;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+  }
+  .multi-option:last-child { border-bottom: none; }
+  .multi-option:hover { background: var(--surface-2); }
+  .selected-workers { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 8px; margin-bottom: 8px; }
+  .selected-tag {
+    background: var(--surface-2);
+    border: 1px solid var(--border-strong);
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 11px;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+  }
+  .selected-tag button { background: none; border: none; cursor: pointer; color: var(--danger); font-size: 10px; }
+
+  /* TABLE */
+  .table-wrap { overflow: auto; max-height: 650px; }
+
+  .table-meta, .toolbar-meta {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 14px 22px;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+
+  .table-meta-left { font-size: 12px; color: var(--ink-2); font-variant-numeric: tabular-nums; }
+  .table-meta-left strong { color: var(--ink); font-weight: 600; }
+
+  table { border-collapse: separate; border-spacing: 0; width: 100%; }
+  thead th { position: sticky; top: 0; z-index: 10; background: var(--surface); box-shadow: 0 1px 0 var(--border); text-align: left; padding: 12px 16px; cursor: pointer; }
+  thead th:hover { color: var(--ink); }
+  thead th .sort-icon { display: inline-block; margin-left: 4px; opacity: 0.3; font-size: 10px; }
+  thead th.sorted .sort-icon { opacity: 1; color: var(--accent); }
+
+  tbody tr { transition: background 0.1s ease; }
+  tbody tr:hover { background: var(--surface-2); }
+  tbody td { padding: 12px 16px; border-bottom: 1px solid var(--border); color: var(--ink); vertical-align: middle; }
+  tbody tr:last-child td { border-bottom: none; }
+
+  /* BADGES */
+  .badge {
+    display: inline-flex; align-items: center; gap: 5px; padding: 3px 9px;
+    border-radius: 4px; font-size: 11px; font-weight: 500;
+    text-transform: uppercase; letter-spacing: 0.04em; white-space: nowrap;
+  }
+  .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+  .badge.completed { color: var(--success); background: var(--success-bg); }
+  .badge.pending { color: var(--warning); background: var(--warning-bg); }
+  .badge.incomplete { color: var(--danger); background: var(--danger-bg); }
+  .badge.neutral { color: var(--ink-2); background: var(--surface-2); }
+
+  .badge-rec { display: inline-block; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 500; }
+  .badge-rec.payment { color: var(--success); background: var(--success-bg); }
+  .badge-rec.no-payment { color: var(--warning); background: var(--warning-bg); }
+
+  .link-yes { color: var(--accent); font-weight: 500; }
+  .link-no { color: var(--ink-3); }
+
+  /* STATES */
+  .empty, .error-banner { padding: 48px 24px; text-align: center; color: var(--ink-3); }
+  .empty-title { font-family: 'Instrument Serif', serif; font-size: 22px; color: var(--ink-2); margin-bottom: 6px; }
+
+  .error-banner {
+    background: var(--danger-bg);
+    color: var(--danger);
+    border-radius: 10px;
+    margin-bottom: 24px;
+    padding: 16px 20px;
+    text-align: left;
+    font-size: 13px;
+    display: none;
+  }
+  .error-banner.show { display: block; }
+  .error-banner strong { display: block; margin-bottom: 4px; }
+
+  /* RESPONSIVE */
+  @media (max-width: 1100px) {
+    .metrics { grid-template-columns: repeat(3, 1fr); }
+    .metric:nth-child(-n+3) { border-bottom: 1px solid var(--border); }
+    .charts { grid-template-columns: 1fr; }
+    .sub-filter-row { grid-template-columns: 1fr 1fr; }
+  }
+
+  @media (max-width: 640px) {
+    .page { padding: 20px 16px 48px; }
+    .header { flex-direction: column; align-items: flex-start; }
+    .header-left h1 { font-size: 32px; }
+    .metrics { grid-template-columns: repeat(2, 1fr); }
+    .main-filter-row { grid-template-columns: 1fr; }
+    .main-filter-actions { padding-top: 0; }
+    .sub-filter-row { grid-template-columns: 1fr; }
+  }
+
+  /* SPINNER */
+  .spinner {
+    display: inline-block; width: 12px; height: 12px;
+    border: 1.5px solid currentColor; border-top-color: transparent;
+    border-radius: 50%; animation: spin 0.8s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<div class="page">
+
+  <header class="header">
+    <div class="header-left">
+      <h1>CS19 <em>Validation</em> Dashboard</h1>
+      <p>Invalid Grade Level Cases &middot; Field Validation Tracking</p>
+    </div>
+    <div class="header-right">
+      <div class="updated">
+        Last updated
+        <strong id="lastUpdated">&mdash;</strong>
+      </div>
+      <button class="btn" id="refreshBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
+        Refresh
+      </button>
+    </div>
+  </header>
+
+  <div class="error-banner" id="errorBanner">
+    <strong>Failed to load dashboard</strong>
+    <span id="errorMessage">Check your connection and try again.</span>
+  </div>
+
+  <div class="filters">
+    <div class="main-filter-group">
+      <div class="main-filter-row">
+        <div class="main-filter-item">
+          <label>Municipality</label>
+          <select id="municipalityFilter" class="filter-select">
+            <option value="">All municipalities</option>
+          </select>
+        </div>
+
+        <div class="main-filter-item">
+          <label>Case Worker</label>
+          <div class="multi-select" id="cwMultiSelect">
+            <input type="text" id="cwSearch" class="filter-input multi-search" placeholder="Search case worker...">
+            <div class="multi-dropdown" id="cwDropdown"></div>
+            <div class="selected-workers" id="selectedWorkers"></div>
+            <button class="btn btn-primary apply-btn" id="applyCWFilterBtn" style="display:none;">
+              Apply Selected Staff
+            </button>
+          </div>
+        </div>
+        
+        <div class="main-filter-actions">
+           <button class="btn" id="resetMainBtn" title="Reset Main Filters">
+             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+             Reset
+           </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="metrics">
+    <div class="metric metric-total">
+      <div class="metric-icon">📋</div>
+      <div class="metric-label">Total Cases</div>
+      <div class="metric-value loading" id="totalCases">0</div>
+      <div class="metric-sub">All monitored records</div>
+    </div>
+    <div class="metric metric-payment">
+      <div class="metric-icon">💰</div>
+      <div class="metric-label">For Payment</div>
+      <div class="metric-value loading" id="forPayment">0</div>
+      <div class="metric-sub">Validated eligible</div>
+    </div>
+    <div class="metric metric-no-payment">
+      <div class="metric-icon">⛔</div>
+      <div class="metric-label">Not For Payment</div>
+      <div class="metric-value loading" id="notForPayment">0</div>
+      <div class="metric-sub">Validated ineligible</div>
+    </div>
+    <div class="metric metric-pending">
+      <div class="metric-icon">⏳</div>
+      <div class="metric-label">Pending</div>
+      <div class="metric-value loading" id="pending">0</div>
+      <div class="metric-sub">Awaiting validation</div>
+    </div>
+    <div class="metric metric-turnout">
+      <div class="metric-icon">📈</div>
+      <div class="metric-label">Turnout</div>
+      <div class="metric-value loading" id="turnout">0%</div>
+      <div class="metric-sub">Cases With Recommendations</div>
+    </div>
+  </div>
+
+  <div class="validation-breakdown">
+    <div class="breakdown-card success-card">
+      <div class="breakdown-title">FOR PAYMENT</div>
+      <div class="breakdown-main" id="fpComplete">0</div>
+      <div class="breakdown-sub">Complete Validation</div>
+      <div class="breakdown-footer" id="fpIncomplete">0 Incomplete</div>
+    </div>
+    <div class="breakdown-card danger-card">
+      <div class="breakdown-title">NOT FOR PAYMENT</div>
+      <div class="breakdown-main" id="nfpComplete">0</div>
+      <div class="breakdown-sub">Complete Validation</div>
+      <div class="breakdown-footer" id="nfpIncomplete">0 Incomplete</div>
+    </div>
+  </div>
+
+  <div class="charts">
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title">Recommendation</div>
+        <div class="panel-meta" id="recMeta">&nbsp;</div>
+      </div>
+      <div class="chart-canvas-wrap">
+        <canvas id="recommendationChart"></canvas>
+      </div>
+    </div>
+    <div class="panel">
+      <div class="panel-header">
+        <div class="panel-title" id="locationChartTitle">Cases by Municipality</div>
+        <div class="panel-meta" id="munMeta">&nbsp;</div>
+      </div>
+      <div class="chart-canvas-wrap">
+        <canvas id="municipalityChart"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <div class="filters">
+    <input type="text" id="searchInput" class="filter-input" placeholder="Search across all fields...">
+    <div class="table-controls">
+      <button class="btn" id="resetFiltersBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/></svg>
+        Reset List Filters
+      </button>
+      <button class="btn btn-primary" id="exportBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="7 10 12 15 17 10"/>
+          <line x1="12" y1="15" x2="12" y2="3"/>
+        </svg>
+        Export CSV
+      </button>
+    </div>
+    <div class="sub-filter-row">
+      <select id="barangayFilter" class="filter-select">
+        <option value="">All barangays</option>
+      </select>
+      <select id="statusFilter" class="filter-select">
+        <option value="">All statuses</option>
+      </select>
+      <select id="recommendationFilter" class="filter-select">
+        <option value="">All recommendations</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="table-container">
+    <div class="toolbar-meta">
+      <div class="result-group">
+        <div class="result-count" id="resultCountWrap">
+          Showing <strong id="resultCount">0</strong> of
+          <strong id="totalCount">0</strong> records
+        </div>
+        <select id="rowsPerPage" class="filter-select rows-select">
+          <option value="10">10 rows</option>
+          <option value="20">20 rows</option>
+          <option value="30">30 rows</option>
+          <option value="50">50 rows</option>
+          <option value="100">100 rows</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th data-sort="municipality">Municipality <span class="sort-icon">&#9650;&#9660;</span></th>
+            <th data-sort="barangay">Barangay <span class="sort-icon">&#9650;&#9660;</span></th>
+            <th data-sort="mlAssigned">ML Assigned <span class="sort-icon">&#9650;&#9660;</span></th>
+            <th data-sort="validationResult">Validation Result <span class="sort-icon">&#9650;&#9660;</span></th>
+            <th data-sort="recommendation">Recommendation <span class="sort-icon">&#9650;&#9660;</span></th>
+            <th data-sort="hasLink">Link <span class="sort-icon">&#9650;&#9660;</span></th>
+            <th data-sort="status">Status <span class="sort-icon">&#9650;&#9660;</span></th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="pagination-wrap">
+    <button class="btn" id="prevPageBtn">Previous</button>
+    <div class="pagination-info">
+      Page <span id="currentPage">1</span> of <span id="totalPages">1</span>
+    </div>
+    <button class="btn" id="nextPageBtn">Next</button>
+  </div>
+
+</div>
+
+<script>
+const API_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AUkAhnSPwtcoTWJyPZuFnh9gYzbqH6F8FqJ7-4V7ptWxtuDal4W9uVF1_BJA5hBhcQKQAxQZN3R5DrjYqYyRZDVPMRXe6ewLMxo1NSTdjayzKZbQOk83uzrtzgUaWLxTMO2hsDbOmTaGLibjilQAVSitM4bUsVLHyZmpUDVm-THwtdgeFCS9CHoSJW9hPXQKB0qnF8DGAozpqWu092lx1gCYJDYP9dWgCxh1kZdi-R-Pr-oB8v8qMi1xV3OY2YldcIrR65hAUqVSNyA8XuYeblP9IcW6qhLN1w&lib=MSH_VktuCCbb-n3uC13X07kb3G6dKY6Gk";
+
+// State
+let allRecords = [];
+let summary = {};
+let recommendationChart = null;
+let municipalityChart = null;
+let sortState = { key: null, dir: 'asc' };
+let selectedCaseWorkers = [];
+let searchDebounce;
+
+// Color palette for charts
+const CHART_COLORS = {
+  accent: '#2D4A3E', accentSoft: '#7FA38F', ink: '#1A1A19', ink3: '#8A8A85',
+  border: '#E8E6DF', success: '#2D5A3D', warning: '#8B6914', danger: '#8B2018',
+  info: '#1F4761', palette: ['#2D4A3E', '#8B6914', '#1F4761', '#8B2018', '#5C5C58', '#A0846A', '#3D6B5C', '#7A4A2E']
+};
+
+Chart.defaults.font.family = "'Geist', sans-serif";
+Chart.defaults.font.size = 12;
+Chart.defaults.color = '#4A4A47';
+
+const fmt = (n) => Number(n || 0).toLocaleString();
+const fmtTime = (d) => {
+  const pad = (x) => String(x).padStart(2, '0');
+  return `${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+};
+
+function getMainScopedRecords() {
+  const mun = document.getElementById('municipalityFilter').value;
+  const cw = selectedCaseWorkers;
+  if (!mun && cw.length === 0) return allRecords;
+  return allRecords.filter(r => {
+    if (mun && r.municipality !== mun) return false;
+    if (cw.length && !cw.includes(r.mlAssigned)) return false;
+    return true;
+  });
+}
+
+function computeSummary(records) {
+  const total = records.length;
+  let accomplished = 0, pending = 0, incomplete = 0, forPayment = 0, notForPayment = 0;
+  records.forEach(r => {
+    const st = String(r.status || '').toUpperCase();
+    if (st === 'COMPLETED') accomplished++;
+    else if (st === 'PENDING') pending++;
+    else if (st === 'INCOMPLETE') incomplete++;
+    const rec = String(r.recommendation || '');
+    if (/not.*for.*payment/i.test(rec)) notForPayment++;
+    else if (/for.*payment/i.test(rec)) forPayment++;
+  });
+  const turnoutPct = total > 0 ? Math.round((accomplished / total) * 1000) / 10 : 0;
+  return { totalCases: total, accomplished, pending, incomplete, forPayment, notForPayment, turnout: `${turnoutPct}%` };
+}
+
+function getActiveSummary() {
+  const mun = document.getElementById('municipalityFilter').value;
+  const cw = selectedCaseWorkers;
+  if (!mun && cw.length === 0) return summary;
+  return computeSummary(getMainScopedRecords());
+}
+
+async function loadDashboard() {
+  setLoadingState(true);
+  hideError();
+  try {
+    const response = await fetch(API_URL);
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const data = await response.json();
+    summary = data.summary || {};
+    allRecords = data.records || [];
+
+    updateMetrics();
+    populateFilters();
+    renderCharts();
+    applyFilters();
+    document.getElementById('lastUpdated').textContent = fmtTime(new Date());
+  } catch (error) {
+    console.error(error);
+    showError(error.message || 'Unknown error');
+  } finally {
+    setLoadingState(false);
+  }
+}
+
+function setLoadingState(loading) {
+  document.querySelectorAll('.metric-value').forEach(el => el.classList.toggle('loading', loading));
+  const btn = document.getElementById('refreshBtn');
+  btn.disabled = loading;
+  btn.innerHTML = loading
+    ? '<span class="spinner"></span> Loading'
+    : '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg> Refresh';
+}
+
+function showError(msg) {
+  document.getElementById('errorMessage').textContent = msg;
+  document.getElementById('errorBanner').classList.add('show');
+}
+function hideError() { document.getElementById('errorBanner').classList.remove('show'); }
+
+function updateMetrics() {
+  const scoped = getMainScopedRecords();
+  const totalCases = scoped.length;
+  let forPayment = 0, notForPayment = 0, pending = 0, fpComplete = 0, fpIncomplete = 0, nfpComplete = 0, nfpIncomplete = 0;
+
+  scoped.forEach(r => {
+    const rec = String(r.recommendation || '').toUpperCase();
+    const status = String(r.status || '').toUpperCase();
+    if (rec.includes('FOR PAYMENT') && !rec.includes('NOT')) {
+      forPayment++;
+      status === 'COMPLETED' ? fpComplete++ : fpIncomplete++;
+    } else if (rec.includes('NOT FOR PAYMENT')) {
+      notForPayment++;
+      status === 'COMPLETED' ? nfpComplete++ : nfpIncomplete++;
+    } else {
+      pending++;
+    }
+  });
+
+  const turnout = totalCases > 0 ? (((forPayment + notForPayment) / totalCases) * 100).toFixed(2) : 0;
+  document.getElementById('totalCases').textContent = fmt(totalCases);
+  document.getElementById('forPayment').textContent = fmt(forPayment);
+  document.getElementById('notForPayment').textContent = fmt(notForPayment);
+  document.getElementById('pending').textContent = fmt(pending);
+  document.getElementById('turnout').textContent = turnout + '%';
+  document.getElementById('fpComplete').textContent = fmt(fpComplete);
+  document.getElementById('fpIncomplete').textContent = `${fmt(fpIncomplete)} Incomplete`;
+  document.getElementById('nfpComplete').textContent = fmt(nfpComplete);
+  document.getElementById('nfpIncomplete').textContent = `${fmt(nfpIncomplete)} Incomplete`;
+}
+
+function populateFilters() {
+  const municipalities = [...new Set(allRecords.map(r => r.municipality))].filter(Boolean).sort();
+  const barangays = [...new Set(allRecords.map(r => r.barangay))].filter(Boolean).sort();
+  const statuses = [...new Set(allRecords.map(r => r.status))].filter(Boolean).sort();
+  const recs = [...new Set(allRecords.map(r => r.recommendation))].filter(Boolean).sort();
+  const selectedMunicipality = document.getElementById('municipalityFilter').value;
+
+  const scopedForCW = selectedMunicipality
+    ? allRecords.filter(r => r.municipality === selectedMunicipality)
+    : allRecords;
+  const caseWorkersList = [...new Set(scopedForCW.map(r => r.mlAssigned))].filter(Boolean).sort();
+
+  fillSelect('municipalityFilter', municipalities, 'All municipalities');
+  fillSelect('barangayFilter', barangays, 'All barangays');
+  fillSelect('statusFilter', statuses, 'All statuses');
+  fillSelect('recommendationFilter', recs, 'All recommendations');
+  
+  renderCaseWorkerDropdown(caseWorkersList);
+}
+
+function renderCaseWorkerDropdown(workers) {
+  const dropdown = document.getElementById('cwDropdown');
+  dropdown.innerHTML = workers.map(worker => `
+    <label class="multi-option">
+      <input type="checkbox" value="${escapeHtml(worker)}" ${selectedCaseWorkers.includes(worker) ? 'checked' : ''}>
+      <span>${escapeHtml(worker)}</span>
+    </label>
+  `).join('');
+
+  dropdown.querySelectorAll('input[type="checkbox"]').forEach(cb => {
+    cb.addEventListener('change', function() {
+      if (this.checked) {
+        if (!selectedCaseWorkers.includes(this.value)) selectedCaseWorkers.push(this.value);
+      } else {
+        selectedCaseWorkers = selectedCaseWorkers.filter(x => x !== this.value);
+      }
+      renderSelectedWorkers();
+    });
+  });
+}
+
+document.getElementById('cwSearch').addEventListener('input', function() {
+  const q = this.value.toLowerCase().trim();
+  const selectedMunicipality = document.getElementById('municipalityFilter').value;
+  const scoped = selectedMunicipality ? allRecords.filter(r => r.municipality === selectedMunicipality) : allRecords;
+  const workers = [...new Set(scoped.map(r => r.mlAssigned).filter(Boolean))]
+    .filter(x => x.toLowerCase().includes(q))
+    .sort();
+  renderCaseWorkerDropdown(workers);
+  
+  // Make sure dropdown stays open while typing
+  document.getElementById('cwDropdown').classList.add('show');
+});
+
+function renderSelectedWorkers() {
+  const wrap = document.getElementById('selectedWorkers');
+  const btn = document.getElementById('applyCWFilterBtn');
+  wrap.innerHTML = selectedCaseWorkers.map(worker => `
+    <div class="selected-tag">
+      ${escapeHtml(worker)}
+      <button onclick="removeCaseWorker('${worker.replace(/'/g, "\\'")}')">✕</button>
+    </div>
+  `).join('');
+  btn.style.display = selectedCaseWorkers.length > 0 ? 'block' : 'none';
+}
+
+window.removeCaseWorker = function(worker) {
+  selectedCaseWorkers = selectedCaseWorkers.filter(x => x !== worker);
+  renderSelectedWorkers();
+  renderCaseWorkerDropdown([...new Set(allRecords.map(r => r.mlAssigned))].filter(Boolean).sort());
+};
+
+function fillSelect(id, values, defaultLabel) {
+  const sel = document.getElementById(id);
+  const current = sel.value;
+  sel.innerHTML = `<option value="">${defaultLabel}</option>` +
+    values.map(v => `<option value="${escapeHtml(v)}">${escapeHtml(v)}</option>`).join('');
+  if (current && values.includes(current)) sel.value = current;
+}
+
+function renderCharts() {
+  if (recommendationChart) recommendationChart.destroy();
+  if (municipalityChart) municipalityChart.destroy();
+
+  const scoped = getMainScopedRecords();
+  const s = getActiveSummary();
+  const selectedMunicipality = document.getElementById('municipalityFilter').value;
+  document.getElementById('locationChartTitle').textContent = selectedMunicipality ? 'Cases by Barangay' : 'Cases by Municipality';
+
+  const forPay = Number(s.forPayment) || 0;
+  const notForPay = Number(s.notForPayment) || 0;
+  document.getElementById('recMeta').textContent = `${fmt(forPay + notForPay)} cases`;
+
+  recommendationChart = new Chart(document.getElementById('recommendationChart'), {
+    type: 'doughnut',
+    data: {
+      labels: ['For Payment', 'Not For Payment', 'Pending'],
+      datasets: [{
+        data: [forPay, notForPay, Number(s.pending) || 0],
+        backgroundColor: [CHART_COLORS.accent, CHART_COLORS.danger, CHART_COLORS.warning],
+        borderColor: '#FFFFFF', borderWidth: 2, hoverOffset: 6
+      }]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false, cutout: '65%',
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 10, boxHeight: 10, padding: 14, font: { size: 12 } } },
+        tooltip: {
+          backgroundColor: '#1A1A19', padding: 10, titleFont: { size: 12, weight: '500' }, bodyFont: { size: 12 },
+          callbacks: {
+            label: (ctx) => {
+              const total = ctx.dataset.data.reduce((a,b) => a+b, 0);
+              const pct = total > 0 ? ((ctx.parsed / total) * 100).toFixed(1) : 0;
+              return `${ctx.label}: ${fmt(ctx.parsed)} (${pct}%)`;
+            }
+          }
+        }
+      }
+    }
+  });
+
+  const chartData = {};
+  scoped.forEach(r => {
+    const key = selectedMunicipality ? (r.barangay || 'Unknown') : (r.municipality || 'Unknown');
+    if (!chartData[key]) chartData[key] = { forPayment: 0, notForPayment: 0, pending: 0 };
+    const rec = String(r.recommendation || '').toUpperCase();
+    if (rec.includes('NOT FOR PAYMENT')) chartData[key].notForPayment++;
+    else if (rec.includes('FOR PAYMENT')) chartData[key].forPayment++;
+    else chartData[key].pending++;
+  });
+
+  const sorted = Object.entries(chartData).sort((a, b) => {
+    const totalA = a[1].forPayment + a[1].notForPayment + a[1].pending;
+    const totalB = b[1].forPayment + b[1].notForPayment + b[1].pending;
+    return totalB - totalA;
+  });
+
+  document.getElementById('munMeta').textContent = selectedMunicipality
+    ? `${sorted.length} barangay${sorted.length === 1 ? '' : 's'}`
+    : `${sorted.length} municipalit${sorted.length === 1 ? 'y' : 'ies'}`;
+
+  municipalityChart = new Chart(document.getElementById('municipalityChart'), {
+    type: 'bar',
+    data: {
+      labels: sorted.map(x => x[0]),
+      datasets: [
+        { label: 'For Payment', data: sorted.map(x => x[1].forPayment), backgroundColor: CHART_COLORS.accent, borderRadius: 4, barThickness: 'flex', maxBarThickness: 28 },
+        { label: 'Not For Payment', data: sorted.map(x => x[1].notForPayment), backgroundColor: CHART_COLORS.warning, borderRadius: 4, barThickness: 'flex', maxBarThickness: 28 },
+        { label: 'Pending', data: sorted.map(x => x[1].pending), backgroundColor: CHART_COLORS.danger, borderRadius: 4, barThickness: 'flex', maxBarThickness: 28 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { position: 'bottom', labels: { boxWidth: 10, boxHeight: 10, padding: 14, font: { size: 12 } } },
+        tooltip: { backgroundColor: '#1A1A19', padding: 10, titleFont: { size: 12, weight: '500' }, bodyFont: { size: 12 }, callbacks: { label: (ctx) => `${ctx.dataset.label}: ${fmt(ctx.parsed.y || ctx.parsed)}` } }
+      },
+      scales: {
+        x: { stacked: true, grid: { display: false }, ticks: { font: { size: 11 }, maxRotation: 45, minRotation: 0 } },
+        y: { stacked: true, beginAtZero: true, grid: { color: CHART_COLORS.border, drawBorder: false }, ticks: { font: { size: 11 }, precision: 0 } }
+      }
+    }
+  });
+}
+
+function applyFilters() {
+  const search = document.getElementById('searchInput').value.toLowerCase().trim();
+  const mun = document.getElementById('municipalityFilter').value;
+  const brgy = document.getElementById('barangayFilter').value;
+  const cw = selectedCaseWorkers;
+  const stat = document.getElementById('statusFilter').value;
+  const rec = document.getElementById('recommendationFilter').value;
+
+  let filtered = allRecords.filter(r => {
+    if (mun && r.municipality !== mun) return false;
+    if (brgy && r.barangay !== brgy) return false;
+    if (cw.length && !cw.includes(r.mlAssigned)) return false;
+    if (stat && r.status !== stat) return false;
+    if (rec && r.recommendation !== rec) return false;
+    if (search) {
+      const blob = Object.values(r).join(' ').toLowerCase();
+      if (!blob.includes(search)) return false;
+    }
+    return true;
+  });
+
+  if (sortState.key) {
+    filtered = [...filtered].sort((a, b) => {
+      const va = a[sortState.key], vb = b[sortState.key];
+      if (va == null) return 1; if (vb == null) return -1;
+      if (typeof va === 'number' && typeof vb === 'number') return sortState.dir === 'asc' ? va - vb : vb - va;
+      const sa = String(va).toLowerCase(), sb = String(vb).toLowerCase();
+      return sortState.dir === 'asc' ? sa.localeCompare(sb) : sb.localeCompare(sa);
+    });
+  }
+  const maxPages = Math.max(1, Math.ceil(filtered.length / rowsPerPage));
+  if (currentPage > maxPages) currentPage = 1;
+  
+  renderTable(filtered);
+  document.getElementById('resultCount').textContent = fmt(filtered.length);
+  document.getElementById('totalCount').textContent = fmt(allRecords.length);
+}
+
+let currentPage = 1;
+let rowsPerPage = 10;
+
+function renderTable(records) {
+  const tbody = document.getElementById('tableBody');
+  const start = (currentPage - 1) * rowsPerPage;
+  const end = start + rowsPerPage;
+  const paginated = records.slice(start, end);
+
+  if (records.length === 0) {
+    tbody.innerHTML = `<tr><td colspan="7" class="empty"><div class="empty-title">No matching records</div><div>Try adjusting your filters or search.</div></td></tr>`;
+    return;
+  }
+
+  tbody.innerHTML = paginated.map(r => {
+    const status = (r.status || '').toUpperCase();
+    const statusClass = status === 'COMPLETED' ? 'completed' : status === 'INCOMPLETE' ? 'incomplete' : status === 'PENDING' ? 'pending' : 'neutral';
+    const recText = (r.recommendation || '').toString();
+    const recClass = /for payment/i.test(recText) && !/not/i.test(recText) ? 'payment' : 'no-payment';
+
+    return `
+      <tr>
+        <td>${escapeHtml(r.municipality)}</td>
+        <td>${escapeHtml(r.barangay)}</td>
+        <td>${escapeHtml(r.mlAssigned)}</td>
+        <td>${escapeHtml(r.validationResult)}</td>
+        <td><span class="badge-rec ${recClass}">${escapeHtml(recText)}</span></td>
+        <td class="${r.hasLink ? 'link-yes' : 'link-no'}">${r.hasLink ? 'Yes' : 'No'}</td>
+        <td><span class="badge ${statusClass}">${escapeHtml(r.status)}</span></td>
+      </tr>
+    `;
+  }).join('');
+
+  document.getElementById('currentPage').textContent = currentPage;
+  document.getElementById('totalPages').textContent = Math.ceil(records.length / rowsPerPage) || 1;
+}
+
+function exportCSV() {
+  const search = document.getElementById('searchInput').value.toLowerCase().trim();
+  const mun = document.getElementById('municipalityFilter').value;
+  const brgy = document.getElementById('barangayFilter').value;
+  const cw = selectedCaseWorkers; 
+  const stat = document.getElementById('statusFilter').value;
+  const rec = document.getElementById('recommendationFilter').value;
+
+  const filtered = allRecords.filter(r => {
+    if (mun && r.municipality !== mun) return false;
+    if (brgy && r.barangay !== brgy) return false;
+    if (cw.length && !cw.includes(r.mlAssigned)) return false; 
+    if (stat && r.status !== stat) return false;
+    if (rec && r.recommendation !== rec) return false;
+    if (search) {
+      const blob = Object.values(r).join(' ').toLowerCase();
+      if (!blob.includes(search)) return false;
+    }
+    return true;
+  });
+
+  const headers = ['Municipality', 'Barangay', 'ML Assigned', 'Validation Result', 'Recommendation', 'Has Link', 'Status'];
+  const rows = filtered.map(r => [ r.municipality, r.barangay, r.mlAssigned, r.validationResult, r.recommendation, r.hasLink ? 'YES' : 'NO', r.status ]);
+
+  const csv = [headers, ...rows].map(row => row.map(cell => {
+    const s = String(cell ?? '');
+    return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+  }).join(',')).join('\n');
+
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `cs19-validation-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function escapeHtml(s) {
+  if (s == null) return '';
+  return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#039;');
+}
+
+document.getElementById('searchInput').addEventListener('input', () => {
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(applyFilters, 180);
+});
+
+function applyMainFilters() {
+  updateMetrics();
+  renderCharts();
+  applyFilters();
+}
+
+document.getElementById('municipalityFilter').addEventListener('change', () => {
+  selectedCaseWorkers = [];
+  renderSelectedWorkers();
+  populateFilters();
+  applyMainFilters();
+});
+
+document.getElementById('applyCWFilterBtn').addEventListener('click', () => applyMainFilters());
+
+['barangayFilter', 'statusFilter', 'recommendationFilter'].forEach(id => {
+  document.getElementById(id).addEventListener('change', applyFilters);
+});
+
+document.getElementById('refreshBtn').addEventListener('click', loadDashboard);
+document.getElementById('exportBtn').addEventListener('click', exportCSV);
+
+document.getElementById('rowsPerPage').addEventListener('change', function(){
+  rowsPerPage = Number(this.value);
+  currentPage = 1;
+  applyFilters();
+});
+
+document.getElementById('prevPageBtn').addEventListener('click', function(){
+  if(currentPage > 1){
+    currentPage--;
+    applyFilters();
+  }
+});
+
+document.getElementById('nextPageBtn').addEventListener('click', function(){
+  const filteredCount = document.getElementById('resultCount').textContent.replace(/,/g, '');
+  const totalPages = Math.ceil(Number(filteredCount) / rowsPerPage);
+  if(currentPage < totalPages){
+    currentPage++;
+    applyFilters();
+  }
+});
+
+// ==========================================
+// RESET BUTTONS LOGIC
+// ==========================================
+
+// Reset Main Filters Only
+document.getElementById('resetMainBtn').addEventListener('click', function() {
+  document.getElementById('municipalityFilter').value = '';
+  selectedCaseWorkers = []; 
+  renderSelectedWorkers();
+  populateFilters(); 
+  currentPage = 1;
+  applyMainFilters(); 
+});
+
+// Reset List Filters Only
+document.getElementById('resetFiltersBtn').addEventListener('click', function(){
+  document.getElementById('searchInput').value = '';
+  document.getElementById('barangayFilter').value = '';
+  document.getElementById('statusFilter').value = '';
+  document.getElementById('recommendationFilter').value = '';
+  currentPage = 1;
+  
+  // Only apply table filters, NO update to metrics/charts needed
+  applyFilters();
+});
+
+document.querySelectorAll('thead th[data-sort]').forEach(th => {
+  th.addEventListener('click', () => {
+    const key = th.dataset.sort;
+    if (sortState.key === key) {
+      sortState.dir = sortState.dir === 'asc' ? 'desc' : 'asc';
+    } else {
+      sortState.key = key;
+      sortState.dir = 'asc';
+    }
+    document.querySelectorAll('thead th').forEach(x => x.classList.remove('sorted'));
+    th.classList.add('sorted');
+    applyFilters();
+  });
+});
+
+// ==========================================
+// DROPDOWN TOGGLE LOGIC
+// ==========================================
+const cwSearchInput = document.getElementById('cwSearch');
+const cwDropdownEl = document.getElementById('cwDropdown');
+const cwMultiSelectWrap = document.getElementById('cwMultiSelect');
+
+cwSearchInput.addEventListener('click', (e) => {
+  cwDropdownEl.classList.add('show');
+});
+
+document.addEventListener('click', (e) => {
+  if (!cwMultiSelectWrap.contains(e.target)) {
+    cwDropdownEl.classList.remove('show');
+  }
+});
+
+loadDashboard();
+</script>
+
+</body>
+</html>
